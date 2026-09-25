@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Product Price Watch & Availability Alert System</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+    }
+
+    header p {
+      margin: 0;
+      color: #d1d5db;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 30px auto;
+    }
+
+    .section {
+      background: white;
+      padding: 25px;
+      margin-bottom: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 20px;
+      background: #fafafa;
+    }
+
+    .product-card h3 {
+      margin-top: 0;
+    }
+
+    .price {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .stock {
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .in-stock {
+      color: green;
+    }
+
+    .out-stock {
+      color: red;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      margin: 5px 5px 5px 0;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .admin-button {
+      background: #dc2626;
+    }
+
+    .message {
+      padding: 12px;
+      margin-top: 15px;
+      border-radius: 5px;
+      background: #eef2ff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #f3f4f6;
+    }
+
+    .loading {
+      color: #666;
+    }
+
+    @media(max-width: 600px) {
+
+      .container {
+        width: 95%;
+      }
+
+      table {
+        font-size: 13px;
+      }
+
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <header>
+
+    <h1>Product Price Watch</h1>
+
+    <p>
+      Price Drop & Availability Alert System
+    </p>
+
+  </header>
+
+
+  <div class="container">
+
+
+    <!-- PRODUCTS -->
+
+    <div class="section">
+
+      <h2>Available Products</h2>
+
+      <button onclick="loadProducts()">
+        Refresh Products
+      </button>
+
+      <div id="products" class="products">
+
+        <p class="loading">
+          Loading products...
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- SUBSCRIBE -->
+
+    <div class="section">
+
+      <h2>Subscribe for Alerts</h2>
+
+      <form id="subscribeForm">
+
+        <label>
+          Email
+        </label>
+
+        <input type="email" id="email" placeholder="your@email.com" required>
+
+
+        <label>
+          Product
+        </label>
+
+        <select id="productId" required>
+
+          <option value="">
+            Select product
+          </option>
+
+        </select>
+
+
+        <label>
+          Target Price
+        </label>
+
+        <input type="number" id="targetPrice" placeholder="Enter target price" min="1" required>
+
+
+        <label>
+
+          <input type="checkbox" id="notifyRestock">
+
+          Notify me when this product is back in stock
+
+        </label>
+
+
+        <br>
+
+        <button type="submit">
+          Subscribe
+        </button>
+
+      </form>
+
+      <div id="subscribeMessage"></div>
+
+    </div>
+
+
+    <!-- SUBSCRIPTIONS -->
+
+    <div class="section">
+
+      <h2>Active Subscriptions</h2>
+
+      <button onclick="loadSubscriptions()">
+        Refresh Subscriptions
+      </button>
+
+      <div id="subscriptions">
+
+        <p class="loading">
+          Click refresh to load subscriptions.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- PRICE HISTORY -->
+
+    <div class="section">
+
+      <h2>Price History</h2>
+
+      <button onclick="loadPriceHistory()">
+        Refresh Price History
+      </button>
+
+      <div id="history">
+
+        <p class="loading">
+          Click refresh to load price history.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- ADMIN -->
+
+    <div class="section">
+
+      <h2>Admin / Demo Controls</h2>
+
+      <p>
+        Use these controls to demonstrate the alert system.
+      </p>
+
+      <button class="admin-button" onclick="simulateDrop()">
+
+        Simulate Price Drop
+
+      </button>
+
+      <button class="admin-button" onclick="updateProduct()">
+
+        Update Product
+
+      </button>
+
+      <div id="adminMessage"></div>
+
+    </div>
+
+
+  </div>
+
+
+  <script>
+
+    const API_BASE_URL =
+      "https://wa10dkex75.execute-api.ap-south-2.amazonaws.com";
+
+
+    /* =========================
+       API HELPER
+    ========================= */
+
+    async function apiRequest(
+      endpoint,
+      method = "GET",
+      body = null
+    ) {
+
+      const options = {
+        method: method,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      };
+
+      if (body) {
+        options.body = JSON.stringify(body);
+      }
+
+      const response =
+        await fetch(
+          API_BASE_URL + endpoint,
+          options
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Request failed"
+        );
+
+      }
+
+      return data;
+    }
+
+
+    /* =========================
+       LOAD PRODUCTS
+    ========================= */
+
+    async function loadProducts() {
+
+      const container =
+        document.getElementById("products");
+
+      const productSelect =
+        document.getElementById("productId");
+
+      container.innerHTML =
+        "<p>Loading...</p>";
+
+      try {
+
+        const data =
+          await apiRequest("/products");
+
+        const products =
+          data.products || [];
+
+        container.innerHTML = "";
+
+        productSelect.innerHTML =
+          '<option value="">Select product</option>';
+
+
+        products.forEach(product => {
+
+          const card =
+            document.createElement("div");
+
+          card.className =
+            "product-card";
+
+
+          const stockText =
+            product.in_stock
+              ? "In Stock"
+              : "Out of Stock";
+
+
+          const stockClass =
+            product.in_stock
+              ? "in-stock"
+              : "out-stock";
+
+
+          card.innerHTML = `
+
+                <h3>
+                    ${product.product_name}
+                </h3>
+
+                <p>
+                    Product ID:
+                    ${product.product_id}
+                </p>
+
+                <div class="price">
+                    ₹${product.current_price}
+                </div>
+
+                <div class="stock ${stockClass}">
+                    ${stockText}
+                </div>
+
+            `;
+
+          container.appendChild(card);
+
+
+          const option =
+            document.createElement("option");
+
+          option.value =
+            product.product_id;
+
+          option.textContent =
+            `${product.product_name} - ₹${product.current_price}`;
+
+          productSelect.appendChild(option);
+
+        });
+
+
+        if (products.length === 0) {
+
+          container.innerHTML =
+            "<p>No products found.</p>";
+
+        }
+
+      } catch (error) {
+
+        container.innerHTML =
+          `<p>Error: ${error.message}</p>`;
+
+        console.error(error);
+
+      }
+
+    }
+
+
+    /* =========================
+       SUBSCRIBE
+    ========================= */
+
+    document
+      .getElementById("subscribeForm")
+      .addEventListener(
+        "submit",
+        async function (event) {
+
+          event.preventDefault();
+
+
+          const email =
+            document.getElementById("email")
+              .value;
+
+          const productId =
+            document.getElementById("productId")
+              .value;
+
+          const targetPrice =
+            Number(
+              document.getElementById("targetPrice")
+                .value
+            );
+
+          const notifyRestock =
+            document.getElementById("notifyRestock")
+              .checked;
+
+
+          const message =
+            document.getElementById(
+              "subscribeMessage"
+            );
+
+
+          message.innerHTML =
+            "Creating subscription...";
+
+
+          try {
+
+            const data =
+              await apiRequest(
+                "/subscribe",
+                "POST",
+                {
+                  user_email: email,
+                  product_id: productId,
+                  target_price: targetPrice,
+                  notify_on_restock:
+                    notifyRestock
+                }
+              );
+
+
+            message.innerHTML =
+              `<div class="message">
+                        ${data.message ||
+              "Subscription created successfully."}
+                    </div>`;
+
+
+            document
+              .getElementById("subscribeForm")
+              .reset();
+
+
+            loadSubscriptions();
+
+          } catch (error) {
+
+            message.innerHTML =
+              `<div class="message">
+                        Error: ${error.message}
+                    </div>`;
+
+          }
+
+        }
+      );
+
+
+    /* =========================
+       LOAD SUBSCRIPTIONS
+    ========================= */
+
+    async function loadSubscriptions() {
+
+      const container =
+        document.getElementById(
+          "subscriptions"
+        );
+
+
+      container.innerHTML =
+        "Loading...";
+
+
+      try {
+
+        const data =
+          await apiRequest(
+            "/subscriptions"
+          );
+
+
+        const subscriptions =
+          data.subscriptions || [];
+
+
+        if (subscriptions.length === 0) {
+
+          container.innerHTML =
+            "<p>No subscriptions found.</p>";
+
+          return;
+
+        }
+
+
+        let html = `
+
+            <table>
+
+                <tr>
+
+                    <th>Email</th>
+                    <th>Product</th>
+                    <th>Target Price</th>
+                    <th>Restock Alert</th>
+
+                </tr>
+
+        `;
+
+
+        subscriptions.forEach(subscription => {
+
+          html += `
+
+                <tr>
+
+                    <td>
+                        ${subscription.user_email}
+                    </td>
+
+                    <td>
+                        ${subscription.product_id}
+                    </td>
+
+                    <td>
+                        ₹${subscription.target_price}
+                    </td>
+
+                    <td>
+                        ${subscription.notify_on_restock
+              ? "Yes"
+              : "No"
+            }
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+
+        html += "</table>";
+
+        container.innerHTML = html;
+
+
+      } catch (error) {
+
+        container.innerHTML =
+          `<p>Error: ${error.message}</p>`;
+
+      }
+
+    }
+
+
+    /* =========================
+       PRICE HISTORY
+    ========================= */
+
+    async function loadPriceHistory() {
+
+      const container =
+        document.getElementById(
+          "history"
+        );
+
+
+      container.innerHTML =
+        "Loading...";
+
+
+      try {
+
+        const data =
+          await apiRequest(
+            "/price-history"
+          );
+
+
+        const history =
+          data.price_history || [];
+
+
+        if (history.length === 0) {
+
+          container.innerHTML =
+            "<p>No price history found.</p>";
+
+          return;
+
+        }
+
+
+        let html = `
+
+            <table>
+
+                <tr>
+
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Change Type</th>
+                    <th>Updated At</th>
+
+                </tr>
+
+        `;
+
+
+        history.forEach(record => {
+
+          html += `
+
+                <tr>
+
+                    <td>
+                        ${record.product_id}
+                    </td>
+
+                    <td>
+                        ₹${record.price}
+                    </td>
+
+                    <td>
+                        ${record.change_type}
+                    </td>
+
+                    <td>
+                        ${record.updated_at}
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+
+        html += "</table>";
+
+        container.innerHTML = html;
+
+
+      } catch (error) {
+
+        container.innerHTML =
+          `<p>Error: ${error.message}</p>`;
+
+      }
+
+    }
+
+
+    /* =========================
+       SIMULATE PRICE DROP
+    ========================= */
+
+
+    async function simulateDrop() {
+
+      const productId =
+          prompt(
+              "Enter product ID for price drop:"
+          );
+
+      if (!productId) {
+        return;
+    }
+
+    const message =
+        document.getElementById(
+            "adminMessage"
+        );
+
+    message.innerHTML =
+        "Simulating price drop...";
+
+    try {
+
+        const data =
+            await apiRequest(
+                "/simulate-drop",
+                "POST",
+                {
+                    product_id: productId
+                }
+            );
+
+        message.innerHTML =
+            `< div class="message" >
+        ${
+          data.message ||
+          "Price drop simulation completed."
+      }
+            </div > `;
+
+        loadProducts();
+        loadPriceHistory();
+
+    } catch (error) {
+
+        message.innerHTML =
+            `< div class="message" >
+        Error: ${ error.message }
+            </div > `;
+
+    }
+
+}
+
+
+    /* =========================
+       UPDATE PRODUCT
+    ========================= */
+
+    async function updateProduct() {
+
+      const productId =
+        prompt(
+          "Enter product ID:"
+        );
+
+
+      if (!productId) {
+        return;
+      }
+
+
+      const priceInput =
+        prompt(
+          "Enter new price (leave empty to keep current price):"
+        );
+
+
+      const stockInput =
+        prompt(
+          "Enter stock status: true or false"
+        );
+
+
+      const body = {
+        product_id: productId
+      };
+
+
+      if (priceInput !== null &&
+        priceInput.trim() !== "") {
+
+        body.current_price =
+          Number(priceInput);
+
+      }
+
+
+      if (stockInput !== null &&
+        stockInput.trim() !== "") {
+
+        body.in_stock =
+          stockInput.toLowerCase()
+          === "true";
+
+      }
+
+
+      try {
+
+        const data =
+          await apiRequest(
+            "/products/update",
+            "POST",
+            body
+          );
+
+
+        document.getElementById(
+          "adminMessage"
+        ).innerHTML =
+          `<div class="message">
+                ${data.message ||
+          "Product updated successfully."}
+            </div>`;
+
+
+        loadProducts();
+        loadPriceHistory();
+
+
+      } catch (error) {
+
+        document.getElementById(
+          "adminMessage"
+        ).innerHTML =
+          `<div class="message">
+                Error: ${error.message}
+            </div>`;
+
+      }
+
+    }
+
+
+    /* =========================
+       INITIAL LOAD
+    ========================= */
+
+    loadProducts();
+
+  </script>
+
+</body>
+
+</html>
